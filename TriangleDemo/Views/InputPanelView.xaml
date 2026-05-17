@@ -1,0 +1,115 @@
+﻿<UserControl x:Class="TriangleDemo.Views.InputPanelView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:TriangleDemo.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="240">
+    <Border Background="#FAFAFA"
+            BorderBrush="#D1D5DB"
+            BorderThickness="0,0,1,0"
+            Padding="20">
+
+        <StackPanel>
+
+            <TextBlock Text="SIDES"
+                       FontSize="12"
+                       FontWeight="SemiBold"
+                       Foreground="#666666"
+                       Margin="0,0,0,10"/>
+
+            <Grid Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="28"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="a"
+                           FontSize="13"
+                           VerticalAlignment="Center"/>
+
+                <TextBox Grid.Column="1"
+                         Text="{Binding SideA, UpdateSourceTrigger=PropertyChanged}"
+                         Height="30"
+                         Padding="6,0"
+                         VerticalContentAlignment="Center"/>
+            </Grid>
+
+            <Grid Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="28"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="b"
+                           FontSize="13"
+                           VerticalAlignment="Center"/>
+
+                <TextBox Grid.Column="1"
+                         Text="{Binding SideB, UpdateSourceTrigger=PropertyChanged}"
+                         Height="30"
+                         Padding="6,0"
+                         VerticalContentAlignment="Center"/>
+            </Grid>
+
+            <Grid Margin="0,0,0,26">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="28"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="c"
+                           FontSize="13"
+                           VerticalAlignment="Center"/>
+
+                <TextBox Grid.Column="1"
+                         Text="{Binding SideC, UpdateSourceTrigger=PropertyChanged}"
+                         Height="30"
+                         Padding="6,0"
+                         VerticalContentAlignment="Center"/>
+            </Grid>
+
+            <TextBlock Text="COLOR"
+                       FontSize="12"
+                       FontWeight="SemiBold"
+                       Foreground="#666666"
+                       Margin="0,0,0,10"/>
+
+            <StackPanel Orientation="Horizontal"
+                        Margin="0,0,0,10">
+                <Border Width="24"
+                        Height="24"
+                        Background="{Binding SelectedColorHex}"
+                        BorderBrush="#555555"
+                        BorderThickness="1"
+                        Margin="0,0,8,0"/>
+
+                <TextBlock Text="{Binding SelectedColorHex}"
+                           FontSize="13"
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <ItemsControl ItemsSource="{Binding PresetColors}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Button Width="30"
+                                Height="30"
+                                Margin="0,0,8,8"
+                                Background="{Binding}"
+                                BorderBrush="#555555"
+                                BorderThickness="1"
+                                Command="{Binding DataContext.SelectColorCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                CommandParameter="{Binding}" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </Border>
+</UserControl>

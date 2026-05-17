@@ -1,0 +1,8 @@
+﻿<Application x:Class="TriangleDemo.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:TriangleDemo">
+    <Application.Resources>
+         
+    </Application.Resources>
+</Application>
