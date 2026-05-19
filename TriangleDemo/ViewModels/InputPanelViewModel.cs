@@ -1,4 +1,6 @@
 ﻿using System.Globalization;
+using System.Windows.Input;
+using TriangleDemo.Commands;
 
 namespace TriangleDemo.ViewModels
 {
@@ -18,6 +20,8 @@ namespace TriangleDemo.ViewModels
         private string? _validationSummary;
 
         private bool _hasValidationErrors;
+
+        private ICommand? _selectColorCommand;
 
         #endregion //Declarations
 
@@ -156,6 +160,19 @@ namespace TriangleDemo.ViewModels
         public bool IsValid => !HasValidationErrors;
 
         #endregion //Properties
+
+        #region Commands
+        public ICommand SelectColorCommand
+        {
+            get
+            {
+                if (_selectColorCommand == null)
+                    _selectColorCommand = new RelayCommand(p => SelectedColorHex = (string)p!);
+
+                return _selectColorCommand;
+            }
+        }
+        #endregion //Commands
 
         #region Private Methods
 
