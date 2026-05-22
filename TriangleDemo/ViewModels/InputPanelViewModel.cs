@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using System.Windows.Input;
 using TriangleDemo.Commands;
+using TriangleDemo.Models;
 
 namespace TriangleDemo.ViewModels
 {
@@ -22,6 +23,9 @@ namespace TriangleDemo.ViewModels
         private bool _hasValidationErrors;
 
         private ICommand? _selectColorCommand;
+        private TriangleData? _validTriangle;
+
+        public event Action<TriangleData?> TriangleChanged = delegate { };
 
         #endregion //Declarations
 
@@ -35,7 +39,7 @@ namespace TriangleDemo.ViewModels
                     return;
 
                 _sideA = value;
-                OnPropertyChanged(nameof(SideA));
+                OnPropertyChanged();
                 Validate();
             }
         }
@@ -49,7 +53,7 @@ namespace TriangleDemo.ViewModels
                     return;
 
                 _sideB = value;
-                OnPropertyChanged(nameof(SideB));
+                OnPropertyChanged();
                 Validate();
             }
         }
@@ -63,7 +67,7 @@ namespace TriangleDemo.ViewModels
                     return;
 
                 _sideC = value;
-                OnPropertyChanged(nameof(SideC));
+                OnPropertyChanged();
                 Validate();
             }
         }
@@ -87,7 +91,9 @@ namespace TriangleDemo.ViewModels
                     return;
 
                 _selectedColorHex = value;
-                OnPropertyChanged(nameof(SelectedColorHex));
+                OnPropertyChanged();
+                if (ValidTriangle != null)
+                    ValidTriangle = ValidTriangle with { ColorHex = value };
             }
         }
 
@@ -100,7 +106,7 @@ namespace TriangleDemo.ViewModels
                     return;
 
                 _sideAError = value;
-                OnPropertyChanged(nameof(SideAError));
+                OnPropertyChanged();
             }
         }
 
@@ -113,7 +119,7 @@ namespace TriangleDemo.ViewModels
                     return;
 
                 _sideBError = value;
-                OnPropertyChanged(nameof(SideBError));
+                OnPropertyChanged();
             }
         }
 
@@ -126,7 +132,7 @@ namespace TriangleDemo.ViewModels
                     return;
 
                 _sideCError = value;
-                OnPropertyChanged(nameof(SideCError));
+                OnPropertyChanged();
             }
         }
 
@@ -139,7 +145,7 @@ namespace TriangleDemo.ViewModels
                     return;
 
                 _validationSummary = value;
-                OnPropertyChanged(nameof(ValidationSummary));
+                OnPropertyChanged();
             }
         }
 
@@ -152,12 +158,24 @@ namespace TriangleDemo.ViewModels
                     return;
 
                 _hasValidationErrors = value;
-                OnPropertyChanged(nameof(HasValidationErrors));
+                OnPropertyChanged();
                 OnPropertyChanged(nameof(IsValid));
             }
         }
 
         public bool IsValid => !HasValidationErrors;
+
+        public TriangleData? ValidTriangle
+        {
+            get => _validTriangle;
+            private set
+            {
+                if (_validTriangle == value) return;
+                _validTriangle = value;
+                OnPropertyChanged();
+                TriangleChanged.Invoke(value);
+            }
+        }
 
         #endregion //Properties
 
@@ -184,6 +202,7 @@ namespace TriangleDemo.ViewModels
             {
                 HasValidationErrors = HasAnySideError();
                 ValidationSummary = HasValidationErrors ? "Fix validation errors above." : null;
+                ValidTriangle = null;
                 return;
             }
 
@@ -191,11 +210,13 @@ namespace TriangleDemo.ViewModels
             {
                 HasValidationErrors = HasAnySideError();
                 ValidationSummary = "Fix validation errors above.";
+                ValidTriangle = null;
                 return;
             }
 
             HasValidationErrors = false;
             ValidationSummary = null;
+            ValidTriangle = new TriangleData(a, b, c, SelectedColorHex);
         }
 
         private bool TryParseSideSize(string value, out double result)

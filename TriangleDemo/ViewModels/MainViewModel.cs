@@ -6,6 +6,8 @@
         {
             Input = new InputPanelViewModel();
             Render = new RenderViewModel();
+
+            Input.TriangleChanged += triangle => Render.CurrentTriangle = triangle;
         }
 
         public InputPanelViewModel Input { get; }

@@ -16,6 +16,7 @@
 
         <views:InputPanelView Grid.Column="0"
                       DataContext="{Binding Input}" />
-        <views:RenderView Grid.Column="1" />
+        <views:RenderView Grid.Column="1"
+                          DataContext="{Binding Render}" />
     </Grid>
 </Window>
