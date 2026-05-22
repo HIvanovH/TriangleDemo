@@ -25,7 +25,7 @@
                 CornerRadius="4"
                 Padding="10"
                 Margin="0,16,0,0"
-                Visibility="{Binding HasValidationErrors, Converter={StaticResource BoolToVisibilityConverter}}">
+                Visibility="{Binding HasErrors, Converter={StaticResource BoolToVisibilityConverter}}">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <Border Width="18" Height="18"
                         CornerRadius="9"
@@ -49,7 +49,6 @@
                 </StackPanel>
             </Border>
 
-
             <StackPanel>
                 <TextBlock Text="SIDES"
                 FontSize="12"
@@ -57,9 +56,18 @@
                 Foreground="#666666"
                 Margin="0,0,0,10"/>
 
-                <controls:SideInputControl Label="a" Value="{Binding SideA}" Error="{Binding SideAError}"/>
-                <controls:SideInputControl Label="b" Value="{Binding SideB}" Error="{Binding SideBError}"/>
-                <controls:SideInputControl Label="c" Value="{Binding SideC}" Error="{Binding SideCError}"/>
+                <controls:SideInputControl 
+                    Label="a" Value="{Binding SideA}" 
+                    Error="{Binding SideAError}" 
+                    Validation.ErrorTemplate="{x:Null}"/>
+                <controls:SideInputControl 
+                    Label="b" Value="{Binding SideB}" 
+                    Error="{Binding SideBError}" 
+                    Validation.ErrorTemplate="{x:Null}"/>
+                <controls:SideInputControl 
+                    Label="c" Value="{Binding SideC}" 
+                    Error="{Binding SideCError}" 
+                    Validation.ErrorTemplate="{x:Null}"/>
 
                 <TextBlock
                     Text="COLOR"
@@ -77,7 +85,7 @@
                          BorderBrush="#555555"
                          BorderThickness="1"
                          Margin="0,0,8,0"/>
-                    
+
                     <TextBlock Text="{Binding SelectedColorHex}"
                         FontSize="13"
                         VerticalAlignment="Center"/>
