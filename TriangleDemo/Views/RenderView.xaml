@@ -7,15 +7,21 @@
              xmlns:interop ="clr-namespace:TriangleDemo.Interop"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+    </UserControl.Resources>
+
     <Grid Background="#111827">
         <Grid.RowDefinitions>
             <RowDefinition Height="28"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="24"/>
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0" Background="#111827" Padding="10,0">
             <Grid>
-                <TextBlock Text="D3D11 · SILK.NET"
+                <TextBlock Text="D3D11·SILK.NET"
                            VerticalAlignment="Center"
                            Foreground="#6B7280" FontSize="11" FontFamily="Consolas"/>
                 <TextBlock Text="HwndHost"
@@ -25,9 +31,16 @@
         </Border>
 
         <interop:D3DHwndHost Grid.Row="1"
+                             Margin="26,0"
                              HorizontalAlignment="Stretch"
                              VerticalAlignment="Stretch"
                              Triangle="{Binding CurrentTriangle}" />
+
+        <TextBlock Grid.Row="2" Text="last valid render" 
+           Margin="0,0,0,10"
+           HorizontalAlignment="Center" VerticalAlignment="Center"
+           Foreground="#374151" FontSize="11" FontFamily="Consolas"
+           Visibility="{Binding IsShowingLastFrame, 
                         Converter={StaticResource BoolToVisibilityConverter}}"/>
     </Grid>
 </UserControl>

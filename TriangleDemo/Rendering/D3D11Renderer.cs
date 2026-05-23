@@ -31,6 +31,7 @@ namespace TriangleDemo.Rendering
         private bool _needsResize;
         private bool _dirty;
         private TriangleData? _currentTriangle;
+        private TriangleData? _lastValidTriangle;
 
         private static readonly float[] ClearColor = { 0.067f, 0.094f, 0.153f, 1.0f };
 
@@ -194,7 +195,6 @@ namespace TriangleDemo.Rendering
             }
         }
 
-
         private unsafe void InitColorBuffer()
         {
             var bufDesc = new BufferDesc
@@ -203,12 +203,16 @@ namespace TriangleDemo.Rendering
                 Usage = Usage.Default,
                 BindFlags = (uint)BindFlag.ConstantBuffer
             };
+
             SilkMarshal.ThrowHResult(
                 _device.CreateBuffer(in bufDesc, null, ref _colorBuffer));
         }
 
         public void UpdateTriangle(TriangleData? triangle)
         {
+            if (triangle != null) 
+                _lastValidTriangle = triangle;
+
             _currentTriangle = triangle;
             _dirty = true;
         }
@@ -239,7 +243,8 @@ namespace TriangleDemo.Rendering
 
         private unsafe void OnRender(object? sender, EventArgs e)
         {
-            if (!_initialized) return;
+            if (!_initialized) 
+                return;
 
             if (_needsResize)
             {
@@ -247,11 +252,15 @@ namespace TriangleDemo.Rendering
                 _needsResize = false;
             }
 
+            var toDraw = _currentTriangle ?? _lastValidTriangle;
+
             using var framebuffer = _swapchain.GetBuffer<ID3D11Texture2D>(0);
 
             Texture2DDesc texDesc = default;
             framebuffer.GetDesc(ref texDesc);
-            if (texDesc.Width == 0 || texDesc.Height == 0) return;
+            if (texDesc.Width == 0 || texDesc.Height == 0) 
+                return;
+
             var viewport = new Viewport(0, 0, texDesc.Width, texDesc.Height, 0, 1);
 
             ComPtr<ID3D11RenderTargetView> rtv = default;
@@ -262,12 +271,13 @@ namespace TriangleDemo.Rendering
 
             if (_dirty)
             {
-                if (_currentTriangle != null)
-                    ApplyTriangle(_currentTriangle);
+                if (toDraw != null)
+                    ApplyTriangle(toDraw);
+
                 _dirty = false;
             }
 
-            if (_currentTriangle != null)
+            if (toDraw != null)
             {
                 _context.RSSetViewports(1, in viewport);
                 _context.OMSetRenderTargets(1, ref rtv, ref Unsafe.NullRef<ID3D11DepthStencilView>());
