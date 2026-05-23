@@ -28,6 +28,5 @@
                              HorizontalAlignment="Stretch"
                              VerticalAlignment="Stretch"
                              Triangle="{Binding CurrentTriangle}" />
-                        Converter={StaticResource BoolToVisibilityConverter}}"/>
     </Grid>
 </UserControl>
