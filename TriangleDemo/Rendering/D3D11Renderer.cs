@@ -24,6 +24,7 @@ namespace TriangleDemo.Rendering
         private ComPtr<ID3D11Buffer> _colorBuffer;
         private ComPtr<ID3D11VertexShader> _vs;
         private ComPtr<ID3D11PixelShader> _ps;
+        private ComPtr<ID3D11PixelShader> _psGrid;
         private ComPtr<ID3D11InputLayout> _inputLayout;
         private ComPtr<ID3D11RasterizerState> _rastState;
         private ComPtr<ID3D11Buffer> _gridBuffer;
@@ -35,7 +36,7 @@ namespace TriangleDemo.Rendering
         private TriangleData? _lastValidTriangle;
 
         private static readonly float[] ClearColor = { 0.067f, 0.094f, 0.153f, 1.0f };
-        private static readonly float[] GridColor = { 0.0f, 0.1f, 0.3f, 1.0f };
+        private static readonly float[] GridColor = { 0.1f, 0.3f, 0.2f, 1.0f };
 
         private static readonly float[] GridLines =
         {
@@ -68,6 +69,11 @@ namespace TriangleDemo.Rendering
             }
 
             float4 ps_main(VSOut i) : SV_TARGET {
+                return color;
+            }
+
+            float4 ps_grid(VSOut i) : SV_TARGET {
+                if (fmod(i.pos.x + i.pos.y, 8.0) < 6.0) discard;
                 return color;
             }
             ";
@@ -168,13 +174,36 @@ namespace TriangleDemo.Rendering
                 hr.Throw();
             }
 
-            _device.CreateVertexShader(vsCode.GetBufferPointer(),
-                vsCode.GetBufferSize(),
-                ref Unsafe.NullRef<ID3D11ClassLinkage>(), ref _vs);
+            ComPtr<ID3D10Blob> psGridCode = default, psGridErrors = default;
+            hr = (HResult)_compiler.Compile(
+                in shaderBytes[0], (nuint)shaderBytes.Length,
+                nameof(ShaderSource), null,
+                ref Unsafe.NullRef<ID3DInclude>(),
+                "ps_grid", "ps_5_0", 0, 0,
+                ref psGridCode, ref psGridErrors);
 
-            _device.CreatePixelShader(psCode.GetBufferPointer(),
-                psCode.GetBufferSize(),
-                ref Unsafe.NullRef<ID3D11ClassLinkage>(), ref _ps);
+            if (hr.IsFailure)
+            {
+                if (psGridErrors.Handle != null)
+                    throw new Exception(SilkMarshal.PtrToString((nint)psGridErrors.GetBufferPointer()));
+                hr.Throw();
+            }
+
+            SilkMarshal.ThrowHResult(
+                _device.CreateVertexShader(vsCode.GetBufferPointer(),
+                    vsCode.GetBufferSize(),
+                    ref Unsafe.NullRef<ID3D11ClassLinkage>(), ref _vs));
+
+            SilkMarshal.ThrowHResult(
+                _device.CreatePixelShader(psGridCode.GetBufferPointer(),
+                    psGridCode.GetBufferSize(),
+                    ref Unsafe.NullRef<ID3D11ClassLinkage>(), ref _psGrid));
+
+            SilkMarshal.ThrowHResult(
+                _device.CreatePixelShader(psCode.GetBufferPointer(),
+                    psCode.GetBufferSize(),
+                    ref Unsafe.NullRef<ID3D11ClassLinkage>(), ref _ps));
+
 
             fixed (byte* name = SilkMarshal.StringToMemory("POS"))
             {
@@ -191,6 +220,7 @@ namespace TriangleDemo.Rendering
 
             vsCode.Dispose(); vsErrors.Dispose();
             psCode.Dispose(); psErrors.Dispose();
+            psGridCode.Dispose(); psGridErrors.Dispose();
         }
 
         private unsafe void InitVertexBuffer()
@@ -315,22 +345,24 @@ namespace TriangleDemo.Rendering
             _context.PSSetShader(_ps, ref Unsafe.NullRef<ComPtr<ID3D11ClassInstance>>(), 0);
 
             uint stride = 3 * sizeof(float), offset = 0;
-            _context.IASetVertexBuffers(0, 1, ref _gridBuffer, in stride, in offset);
-            _context.IASetPrimitiveTopology(D3DPrimitiveTopology.D3DPrimitiveTopologyLinelist);
-
-            fixed (float* c = GridColor)
-            _context.UpdateSubresource(_colorBuffer, 0, null, c, 0, 0);
-            _context.PSSetConstantBuffers(0, 1, ref _colorBuffer);
-
-            _context.Draw(28, 0);
-            _context.IASetVertexBuffers(0, 1, ref _vertexBuffer, in stride, in offset);
-            _context.IASetPrimitiveTopology(D3DPrimitiveTopology.D3DPrimitiveTopologyTrianglelist);
 
             if (toDraw != null)
             {
+                _context.IASetVertexBuffers(0, 1, ref _vertexBuffer, in stride, in offset);
+                _context.IASetPrimitiveTopology(D3DPrimitiveTopology.D3DPrimitiveTopologyTrianglelist);
                 ApplyTriangle(toDraw);
                 _context.Draw(3, 0);
             }
+
+            _context.IASetVertexBuffers(0, 1, ref _gridBuffer, in stride, in offset);
+            _context.IASetPrimitiveTopology(D3DPrimitiveTopology.D3DPrimitiveTopologyLinelist);
+            _context.PSSetShader(_psGrid, ref Unsafe.NullRef<ComPtr<ID3D11ClassInstance>>(), 0);
+
+            fixed (float* c = GridColor)
+                _context.UpdateSubresource(_colorBuffer, 0, null, c, 0, 0);
+            _context.PSSetConstantBuffers(0, 1, ref _colorBuffer);
+            _context.Draw(28, 0);
+
 
             _swapchain.Present(1, 0);
 
@@ -349,6 +381,7 @@ namespace TriangleDemo.Rendering
             _gridBuffer.Dispose();
             _vs.Dispose();
             _ps.Dispose();
+            _psGrid.Dispose();
             _compiler.Dispose();
             _swapchain.Dispose();
             _context.Dispose();
