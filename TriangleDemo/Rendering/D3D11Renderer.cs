@@ -26,14 +26,35 @@ namespace TriangleDemo.Rendering
         private ComPtr<ID3D11PixelShader> _ps;
         private ComPtr<ID3D11InputLayout> _inputLayout;
         private ComPtr<ID3D11RasterizerState> _rastState;
+        private ComPtr<ID3D11Buffer> _gridBuffer;
 
         private bool _initialized;
         private bool _needsResize;
-        private bool _dirty;
+
         private TriangleData? _currentTriangle;
         private TriangleData? _lastValidTriangle;
 
         private static readonly float[] ClearColor = { 0.067f, 0.094f, 0.153f, 1.0f };
+        private static readonly float[] GridColor = { 0.0f, 0.1f, 0.3f, 1.0f };
+
+        private static readonly float[] GridLines =
+        {
+            -1f, -0.75f, 0f,   1f, -0.75f, 0f,
+            -1f, -0.5f,  0f,   1f, -0.5f,  0f,
+            -1f, -0.25f, 0f,   1f, -0.25f, 0f,
+            -1f,  0f,    0f,   1f,  0f,    0f,
+            -1f,  0.25f, 0f,   1f,  0.25f, 0f,
+            -1f,  0.5f,  0f,   1f,  0.5f,  0f,
+            -1f,  0.75f, 0f,   1f,  0.75f, 0f,
+
+            -0.75f, -1f, 0f,  -0.75f, 1f, 0f,
+            -0.5f,  -1f, 0f,  -0.5f,  1f, 0f,
+            -0.25f, -1f, 0f,  -0.25f, 1f, 0f,
+             0f,    -1f, 0f,   0f,    1f, 0f,
+             0.25f, -1f, 0f,   0.25f, 1f, 0f,
+             0.5f,  -1f, 0f,   0.5f,  1f, 0f,
+             0.75f, -1f, 0f,   0.75f, 1f, 0f,
+        };
 
         private const string ShaderSource = @"
             cbuffer ColorBuf : register(b0) { float4 color; };
@@ -105,6 +126,7 @@ namespace TriangleDemo.Rendering
             InitShaders();
             InitVertexBuffer();
             InitColorBuffer();
+            InitGridBuffer();
 
             _initialized = true;
             _needsResize = true;
@@ -195,6 +217,23 @@ namespace TriangleDemo.Rendering
             }
         }
 
+        private unsafe void InitGridBuffer()
+        {
+            var bufDesc = new BufferDesc
+            {
+                ByteWidth = (uint)(GridLines.Length * sizeof(float)),
+                Usage = Usage.Immutable,
+                BindFlags = (uint)BindFlag.VertexBuffer
+            };
+
+            fixed (float* data = GridLines)
+            {
+                var sub = new SubresourceData { PSysMem = data };
+                SilkMarshal.ThrowHResult(
+                    _device.CreateBuffer(in bufDesc, in sub, ref _gridBuffer));
+            }
+        }
+
         private unsafe void InitColorBuffer()
         {
             var bufDesc = new BufferDesc
@@ -214,7 +253,6 @@ namespace TriangleDemo.Rendering
                 _lastValidTriangle = triangle;
 
             _currentTriangle = triangle;
-            _dirty = true;
         }
 
         private unsafe void ApplyTriangle(TriangleData triangle)
@@ -269,28 +307,28 @@ namespace TriangleDemo.Rendering
 
             _context.ClearRenderTargetView(rtv, ref ClearColor[0]);
 
-            if (_dirty)
-            {
-                if (toDraw != null)
-                    ApplyTriangle(toDraw);
+            _context.RSSetViewports(1, in viewport);
+            _context.OMSetRenderTargets(1, ref rtv, ref Unsafe.NullRef<ID3D11DepthStencilView>());
+            _context.IASetInputLayout(_inputLayout);
 
-                _dirty = false;
-            }
+            _context.VSSetShader(_vs, ref Unsafe.NullRef<ComPtr<ID3D11ClassInstance>>(), 0);
+            _context.PSSetShader(_ps, ref Unsafe.NullRef<ComPtr<ID3D11ClassInstance>>(), 0);
+
+            uint stride = 3 * sizeof(float), offset = 0;
+            _context.IASetVertexBuffers(0, 1, ref _gridBuffer, in stride, in offset);
+            _context.IASetPrimitiveTopology(D3DPrimitiveTopology.D3DPrimitiveTopologyLinelist);
+
+            fixed (float* c = GridColor)
+            _context.UpdateSubresource(_colorBuffer, 0, null, c, 0, 0);
+            _context.PSSetConstantBuffers(0, 1, ref _colorBuffer);
+
+            _context.Draw(28, 0);
+            _context.IASetVertexBuffers(0, 1, ref _vertexBuffer, in stride, in offset);
+            _context.IASetPrimitiveTopology(D3DPrimitiveTopology.D3DPrimitiveTopologyTrianglelist);
 
             if (toDraw != null)
             {
-                _context.RSSetViewports(1, in viewport);
-                _context.OMSetRenderTargets(1, ref rtv, ref Unsafe.NullRef<ID3D11DepthStencilView>());
-                _context.IASetPrimitiveTopology(D3DPrimitiveTopology.D3DPrimitiveTopologyTrianglelist);
-                _context.IASetInputLayout(_inputLayout);
-
-                uint stride = 3 * sizeof(float), offset = 0;
-                _context.IASetVertexBuffers(0, 1, ref _vertexBuffer, in stride, in offset);
-                _context.PSSetConstantBuffers(0, 1, ref _colorBuffer);
-
-                _context.VSSetShader(_vs, ref Unsafe.NullRef<ComPtr<ID3D11ClassInstance>>(), 0);
-                _context.PSSetShader(_ps, ref Unsafe.NullRef<ComPtr<ID3D11ClassInstance>>(), 0);
-
+                ApplyTriangle(toDraw);
                 _context.Draw(3, 0);
             }
 
@@ -308,6 +346,7 @@ namespace TriangleDemo.Rendering
             _vertexBuffer.Dispose();
             _colorBuffer.Dispose();
             _inputLayout.Dispose();
+            _gridBuffer.Dispose();
             _vs.Dispose();
             _ps.Dispose();
             _compiler.Dispose();
