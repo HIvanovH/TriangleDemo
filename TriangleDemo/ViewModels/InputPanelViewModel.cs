@@ -17,11 +17,9 @@ namespace TriangleDemo.ViewModels
 
         private string _selectedColorHex = "#3B82F6";
         private ICommand? _selectColorCommand;
-        private TriangleData? _validTriangle;
 
         private readonly Dictionary<string, List<string>> _errors = new();
 
-        public event Action<TriangleData?> TriangleChanged = delegate { };
         public event EventHandler<DataErrorsChangedEventArgs>? ErrorsChanged;
 
         #endregion //Declarations
@@ -92,9 +90,7 @@ namespace TriangleDemo.ViewModels
 
                 _selectedColorHex = value;
                 OnPropertyChanged();
-
-                if (ValidTriangle != null)
-                    ValidTriangle = ValidTriangle with { ColorHex = value };
+                OnPropertyChanged(nameof(ValidTriangle));
             }
         }
 
@@ -112,16 +108,12 @@ namespace TriangleDemo.ViewModels
 
         public TriangleData? ValidTriangle
         {
-            get => _validTriangle;
-            private set
+            get
             {
-                if (_validTriangle == value) 
-                    return;
+                if (!ValidateNumericInputs(out double a, out double b, out double c))
+                    return null;
 
-                _validTriangle = value;
-
-                OnPropertyChanged();
-                TriangleChanged.Invoke(value);
+                return TriangleFactory.TryCreate(a, b, c, SelectedColorHex);
             }
         }
 
@@ -193,20 +185,10 @@ namespace TriangleDemo.ViewModels
         private void Validate()
         {
             ClearAllErrors();
+            ValidateNumericInputs(out double a, out double b, out double c);
+            ValidateTriangleInequality(a, b, c);
 
-            if (!ValidateNumericInputs(out double a, out double b, out double c))
-            {
-                ValidTriangle = null;
-                return;
-            }
-
-            if (!ValidateTriangleInequality(a, b, c))
-            {
-                ValidTriangle = null;
-                return;
-            }
-
-            ValidTriangle = new TriangleData(a, b, c, SelectedColorHex);
+            OnPropertyChanged(nameof(ValidTriangle));
         }
 
         private bool TryParseSideSize(string value, out double result) =>
