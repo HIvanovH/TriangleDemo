@@ -90,6 +90,7 @@ namespace TriangleDemo.ViewModels
 
                 _selectedColorHex = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(ValidTriangle));
             }
         }
 
