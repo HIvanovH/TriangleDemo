@@ -1,21 +1,27 @@
+using System.ComponentModel;
 using TriangleDemo.Models;
 
 namespace TriangleDemo.ViewModels
 {
     public class MainViewModel : ViewModelBase, IDisposable
     {
-        private readonly Action<TriangleData?> _onTriangleChanged;
+        private readonly PropertyChangedEventHandler _onInputChanged;
 
         public MainViewModel()
         {
             Input = new InputPanelViewModel();
             Render = new RenderViewModel();
 
-            _onTriangleChanged = triangle => Render.CurrentTriangle = triangle;
-            Input.TriangleChanged += _onTriangleChanged;
+            _onInputChanged = (_, e) =>
+            {
+                if (e.PropertyName == nameof(InputPanelViewModel.ValidTriangle))
+                    Render.CurrentTriangle = Input.ValidTriangle;
+            };
+
+            Input.PropertyChanged += _onInputChanged;
         }
 
-        public void Dispose() => Input.TriangleChanged -= _onTriangleChanged;
+        public void Dispose() => Input.PropertyChanged -= _onInputChanged;
 
         public InputPanelViewModel Input { get; }
         public RenderViewModel Render { get; }
