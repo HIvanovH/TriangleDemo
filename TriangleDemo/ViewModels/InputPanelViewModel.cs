@@ -1,8 +1,7 @@
 using System.Collections;
 using System.ComponentModel;
 using System.Globalization;
-using System.Windows.Input;
-using TriangleDemo.Commands;
+using System.Runtime.CompilerServices;
 using TriangleDemo.Models;
 
 namespace TriangleDemo.ViewModels
@@ -15,8 +14,11 @@ namespace TriangleDemo.ViewModels
         private string? _sideB;
         private string? _sideC;
 
-        private string _selectedColorHex = "#3B82F6";
-        private ICommand? _selectColorCommand;
+        private double? _parsedA;
+        private double? _parsedB;
+        private double? _parsedC;
+
+        private int _r = 59, _g = 130, _b = 246;
 
         private readonly Dictionary<string, List<string>> _errors = new();
 
@@ -31,7 +33,7 @@ namespace TriangleDemo.ViewModels
             get => _sideA ?? string.Empty;
             set
             {
-                if (_sideA == value) 
+                if (_sideA == value)
                     return;
 
                 _sideA = value;
@@ -46,7 +48,7 @@ namespace TriangleDemo.ViewModels
             get => _sideB ?? string.Empty;
             set
             {
-                if (_sideB == value) 
+                if (_sideB == value)
                     return;
                 _sideB = value;
 
@@ -60,7 +62,7 @@ namespace TriangleDemo.ViewModels
             get => _sideC ?? string.Empty;
             set
             {
-                if (_sideC == value) 
+                if (_sideC == value)
                     return;
 
                 _sideC = value;
@@ -70,59 +72,49 @@ namespace TriangleDemo.ViewModels
             }
         }
 
-        public string[] PresetColors { get; } =
+        public int R
         {
-            "#3B82F6", 
-            "#10B981", 
-            "#F59E0B",
-            "#EF4444",
-            "#8B5CF6", 
-            "#EC4899"
-        };
-
-        public string SelectedColorHex
-        {
-            get => _selectedColorHex;
-            set
-            {
-                if (_selectedColorHex == value) 
-                    return;
-
-                _selectedColorHex = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(ValidTriangle));
-            }
+            get => _r;
+            set => SetChannel(ref _r, value);
         }
 
-        public string? SideAError 
+        public int G
+        {
+            get => _g;
+            set => SetChannel(ref _g, value);
+        }
+
+        public int B
+        {
+            get => _b;
+            set => SetChannel(ref _b, value);
+        }
+
+        public string? SideAError
             => GetError(nameof(SideA));
-        public string? SideBError 
+        public string? SideBError
             => GetError(nameof(SideB));
-        public string? SideCError 
+        public string? SideCError
             => GetError(nameof(SideC));
 
-        public bool HasErrors 
+        public bool HasErrors
             => _errors.Count > 0;
-        public bool IsValid 
+        public bool IsValid
             => !HasErrors;
+
+        public string SelectedColorHex
+            => $"#{R:X2}{G:X2}{B:X2}";
 
         public TriangleData? ValidTriangle
         {
             get
             {
-                if (!ValidateNumericInputs(out double a, out double b, out double c))
+                if (_parsedA is null || _parsedB is null || _parsedC is null) 
                     return null;
 
-                return TriangleFactory.TryCreate(a, b, c, SelectedColorHex);
+                return TriangleFactory.TryCreate(_parsedA.Value, _parsedB.Value, _parsedC.Value, SelectedColorHex);
             }
         }
-
-        #endregion //Properties
-
-        #region Commands
-
-        public ICommand SelectColorCommand =>
-            _selectColorCommand ??= new RelayCommand(p => SelectedColorHex = (string)p!);
 
         #endregion //Properties
 
@@ -172,21 +164,29 @@ namespace TriangleDemo.ViewModels
 
             if (propertyName == nameof(SideA))
                 OnPropertyChanged(nameof(SideAError));
-            else if (propertyName == nameof(SideB)) 
+            else if (propertyName == nameof(SideB))
                 OnPropertyChanged(nameof(SideBError));
-            else if (propertyName == nameof(SideC)) 
+            else if (propertyName == nameof(SideC))
                 OnPropertyChanged(nameof(SideCError));
         }
 
-        #endregion //Commands
+        #endregion
 
         #region Private Methods
 
         private void Validate()
         {
             ClearAllErrors();
-            ValidateNumericInputs(out double a, out double b, out double c);
-            ValidateTriangleInequality(a, b, c);
+            _parsedA = _parsedB = _parsedC = null;
+
+            bool numericOk = ValidateNumericInputs(out double a, out double b, out double c);
+
+            if (numericOk && ValidateTriangleInequality(a, b, c))
+            {
+                _parsedA = a;
+                _parsedB = b;
+                _parsedC = c;
+            }
 
             OnPropertyChanged(nameof(ValidTriangle));
         }
@@ -228,16 +228,28 @@ namespace TriangleDemo.ViewModels
 
         private bool ValidateTriangleInequality(double a, double b, double c)
         {
-            if (a >= b + c) 
+            if (a >= b + c)
                 SetErrors(nameof(SideA), "a must be less than b + c.");
 
-            if (b >= a + c) 
+            if (b >= a + c)
                 SetErrors(nameof(SideB), "b must be less than a + c.");
 
-            if (c >= a + b) 
+            if (c >= a + b)
                 SetErrors(nameof(SideC), "c must be less than a + b.");
 
             return !HasErrors;
+        }
+
+        private void SetChannel(ref int field, int value, [CallerMemberName] string? prop = null)
+        {
+            if (field == value)
+                return;
+
+            field = value;
+
+            OnPropertyChanged(prop);
+            OnPropertyChanged(nameof(SelectedColorHex));
+            OnPropertyChanged(nameof(ValidTriangle));
         }
 
         #endregion //Private Methods

@@ -1,0 +1,88 @@
+﻿<UserControl x:Class="TriangleDemo.Views.Controls.ColorSelector"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:TriangleDemo.Views.Controls"
+             mc:Ignorable="d" 
+             d:DesignHeight="250" d:DesignWidth="200">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="2*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                 Text="COLOR"
+                 FontSize="12"
+                 FontWeight="SemiBold"
+                 Foreground="#666666"
+                 Margin="0,10"/>
+
+        <StackPanel Grid.Row="1"
+                    Orientation="Horizontal"
+                    Margin="0,0,0,5">
+            <Border Width="24"
+                    Height="24"
+                    Background="{Binding SelectedColorHex}"
+                    BorderBrush="#555555"
+                    BorderThickness="1"
+                    Margin="0,0,8,0"/>
+
+            <TextBlock Text="{Binding SelectedColorHex}"
+                       FontSize="13"
+                       VerticalAlignment="Center"/>
+        </StackPanel>
+        <StackPanel Grid.Row="2" 
+                    Orientation="Horizontal">
+            <TextBlock  Margin="10" 
+                        Text="R" 
+                        Width="16" 
+                        VerticalAlignment="Center"/>
+            <Slider Minimum="0" 
+                    Maximum="255" 
+                    TickFrequency="1" 
+                    IsSnapToTickEnabled="True" 
+                    Value="{Binding R}"
+                    Width="135"/>
+            <TextBlock Text="{Binding R}" Width="35" 
+                       VerticalAlignment="Center" 
+                       Margin="6,0,0,0"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="3" 
+                    Orientation="Horizontal">
+            <TextBlock  Margin="10" 
+                         Text="G" 
+                         Width="16" 
+                         VerticalAlignment="Center"/>
+            <Slider Minimum="0" 
+                 Maximum="255" 
+                 TickFrequency="1" 
+                 IsSnapToTickEnabled="True" 
+                 Value="{Binding G}"
+                  Width="135"/>
+            <TextBlock Text="{Binding G}" Width="30" 
+                       VerticalAlignment="Center" 
+                       Margin="6,0,0,0"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="4" 
+                    Orientation="Horizontal">
+            <TextBlock  Margin="10" 
+                 Text="B" 
+                 Width="16" 
+                 VerticalAlignment="Center"/>
+            <Slider Minimum="0" 
+                 Maximum="255" 
+                 TickFrequency="1" 
+                 IsSnapToTickEnabled="True" 
+                 Value="{Binding B}"
+                 Width="135"/>
+            <TextBlock Text="{Binding B}" Width="30" VerticalAlignment="Center" Margin="6,0,0,0"/>
+        </StackPanel>
+    </Grid>
+</UserControl>
