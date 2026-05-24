@@ -1,6 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using System.Windows.Interop;
 using System.Windows;
+using System.Windows.Media;
 using TriangleDemo.Models;
 using TriangleDemo.Rendering;
 
@@ -9,6 +10,7 @@ namespace TriangleDemo.Interop
     public class D3DHwndHost : HwndHost
     {
         private readonly D3D11Renderer _renderer = new();
+        private readonly EventHandler _renderHandler;
 
         public static readonly DependencyProperty TriangleProperty =
             DependencyProperty.Register(
@@ -28,6 +30,7 @@ namespace TriangleDemo.Interop
 
         public D3DHwndHost()
         {
+            _renderHandler = (_, _) => _renderer.Render();
             Loaded += OnLoaded;
         }
 
@@ -63,11 +66,13 @@ namespace TriangleDemo.Interop
                 nint.Zero, nint.Zero, nint.Zero);
 
             _renderer.Initialize(hwnd, (int)ActualWidth, (int)ActualHeight);
+            CompositionTarget.Rendering += _renderHandler;
             return new HandleRef(this, hwnd);
         }
 
         protected override void DestroyWindowCore(HandleRef hwnd)
         {
+            CompositionTarget.Rendering -= _renderHandler;
             _renderer.Dispose();
             DestroyWindow(hwnd.Handle);
         }

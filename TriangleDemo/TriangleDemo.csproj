@@ -10,9 +10,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-	<PackageReference Include="Silk.NET.Direct3D11" Version="2.*" />
-    <PackageReference Include="Silk.NET.DXGI" Version="2.*" />
-    <PackageReference Include="Silk.NET.Direct3D.Compilers" Version="2.*" />
+    <ProjectReference Include="..\TriangleDemo.Core\TriangleDemo.Core.csproj" />
+    <ProjectReference Include="..\TriangleDemo.Rendering\TriangleDemo.Rendering.csproj" />
   </ItemGroup>
 
 </Project>

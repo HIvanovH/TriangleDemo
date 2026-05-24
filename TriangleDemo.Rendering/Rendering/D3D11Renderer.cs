@@ -2,7 +2,6 @@
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
 using Silk.NET.DXGI;
-using System.Windows.Media;
 using Silk.NET.Direct3D.Compilers;
 using System.Text;
 using TriangleDemo.Models;
@@ -93,7 +92,11 @@ namespace TriangleDemo.Rendering
                     default(ComPtr<IDXGIAdapter>),
                     D3DDriverType.Hardware,
                     Software: default,
+#if DEBUG
+                    (uint)CreateDeviceFlag.Debug,
+#else
                     0u,
+#endif
                     null, 0,
                     D3D11.SdkVersion,
                     ref _device,
@@ -136,7 +139,6 @@ namespace TriangleDemo.Rendering
 
             _initialized = true;
             _needsResize = true;
-            CompositionTarget.Rendering += OnRender;
         }
 
         private unsafe void InitShaders()
@@ -309,9 +311,9 @@ namespace TriangleDemo.Rendering
             _needsResize = true;
         }
 
-        private unsafe void OnRender(object? sender, EventArgs e)
+        public unsafe void Render()
         {
-            if (!_initialized) 
+            if (!_initialized)
                 return;
 
             if (_needsResize)
@@ -371,7 +373,6 @@ namespace TriangleDemo.Rendering
 
         public void Dispose()
         {
-            CompositionTarget.Rendering -= OnRender;
             _initialized = false;
 
             _rastState.Dispose();
