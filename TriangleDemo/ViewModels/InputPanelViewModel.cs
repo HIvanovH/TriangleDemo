@@ -92,13 +92,16 @@ namespace TriangleDemo.ViewModels
 
         public string? SideAError
             => GetError(nameof(SideA));
+
         public string? SideBError
             => GetError(nameof(SideB));
+
         public string? SideCError
             => GetError(nameof(SideC));
 
         public bool HasErrors
             => _errors.Count > 0;
+
         public bool IsValid
             => !HasErrors;
 

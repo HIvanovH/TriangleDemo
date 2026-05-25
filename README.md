@@ -2,7 +2,7 @@
 
 WPF app that renders a D3D11 triangle from user-supplied side lengths and color.
 
-![screenshot](screenshot.png)
+![screenshot](Screenshot.png)
 
 ## Build & Run
 
@@ -26,9 +26,9 @@ Or open `TriangleDemo.sln` in Visual Studio 2022 and hit F5.
 
 **HwndHost for D3D11** — WPF elements don't have their own HWNDs; the entire
 window shares one. `HwndHost` creates a Win32 child window inside the WPF layout
-and hands over an HWND that D3D11 can present to.
+and gives D3D11 an HWND to present to.
 
-**CompositionTarget.Rendering as render loop** — fires once per WPF frame (tied to
+**CompositionTarget.Rendering as render callback** — fires once per WPF frame (tied to
 the monitor refresh rate) on the UI thread, after WPF finishes its own rendering.
 Avoids a separate render thread and synchronization overhead for a single-triangle
 demo. The trade-off is that a heavy scene would block the UI; acceptable here given
@@ -40,6 +40,11 @@ the last valid triangle instead of clearing to black. Feels less broken during e
 **INotifyDataErrorInfo** — inline per-field errors without a separate error panel.
 Validation runs on every keystroke; the triangle only updates when all three sides
 pass both numeric and triangle-inequality checks.
+
+## Stretch Goals
+
+- **Custom color picker** — preset swatches replaced with an RGB slider (R/G/B 0–255). Satisfies the stretch goal from the task spec.
+- **Resize support** — swap chain back buffers are recreated on window resize via `D3DHwndHost.OnSizeChanged`.
 
 ## Shortcuts
 
